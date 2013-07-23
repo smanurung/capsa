@@ -32,7 +32,7 @@ card config
 	straight		3
 	flush			4	compare tanda saja
 	full-house		5
-	bomb			6	compare yang kartunya 4
+	bomb			6
 	straight fh		7
 	
 to-do
