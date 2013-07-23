@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<title>WebSocket Client</title>
+<script type="text/javascript" charset="utf-8">
+ 
+var websocket;
+var serverUrl = "ws://localhost:8080/";
+
+//const REG_MSG = '03-smanurung';
+const READY_MSG = '00';
+//const JALAN_MSG = '01-5/1;5/3';
+//const JALAN_MSG = '01-11/1;12/3;10/2;1/2;13/1';
+//const JALAN_MSG = '01-1/1;3/3;2/2;5/2;4/1';
+//const JALAN_MSG = '01-1/1;9/1;2/1;5/1;4/1';
+//const JALAN_MSG = '01-1/3;1/2;9/3;1/1;9/4';
+//const JALAN_MSG = '01-13/3;10/3;1/3;11/3;12/3';
+//const JALAN_MSG = '01-13/3;13/1;13/2;13/4;12/3';
+//const JALAN_MSG = '01-12/3;13/3;13/1;13/4;13/2';
+const SKIP_MSG = '02';
+ 
+function displayMessage(message){
+	document.getElementById("displaydiv").innerHTML += message +"<br>";
+}
+ 
+// Initialize the WebSocket object and setup Event Handlers
+function initWebSocket(){
+// Check if browser has an implementation of WebSocket (older Mozilla browsers used MozWebSocket)
+	var WebSocketObject = window.WebSocket || window.MozWebSocket;
+	if(WebSocketObject){
+		// Create the WebSocket object
+		websocket = new WebSocketObject(serverUrl);
+	 
+		// Setup the event handlers
+		websocket.onopen = function(){
+			displayMessage("WebSocket Connection Opened");
+			document.getElementById("sendmessage").disabled = false;
+		};
+		 
+		websocket.onclose = function(){
+			displayMessage("WebSocket Connection Closed");
+			document.getElementById("sendmessage").disabled = true;
+		};
+		 
+		websocket.onerror = function(){
+			displayMessage("Connection Error Occured");
+		};
+		 
+		websocket.onmessage = function(message){
+			displayMessage("Received Message: <i>"+message.data+"</i>");
+		};
+	} else {
+	displayMessage("Your Browser does not support WebSockets");
+	}
+}
+ 
+//294Chapter 11 ■ Multiplayer with WebSockets
+// Send a message to the server using the WebSocket
+function sendMessage(){
+	// readyState can be CONNECTING,OPEN,CLOSING,CLOSED
+	if (websocket.readyState = websocket.OPEN){
+		var message = document.getElementById("message").value;
+//		displayMessage("Sending Message: <i>"+message+"</i>");
+//		websocket.send(message);
+//		displayMessage(String(websocket.socket._peername));
+//		displayMessage("Sending Message: <i>"+websocket.socket._peername.port+"</i>");	
+//		websocket.send(websocket.url);
+
+		websocket.send(message);
+//		websocket.send('03-smanurung');
+//		websocket.send('03-fterahadi');		
+
+//		websocket.send(READY_MSG);
+//		websocket.send(JALAN_MSG);
+//		websocket.send(SKIP_MSG);
+	} else {
+		displayMessage("Cannot send message. The WebSocket connection isn't open");
+	}
+}
+ 
+ 
+</script>
+</head>
+<body onload="initWebSocket();">
+	<label for="message">Message</label><input type="text" value="capsa-default-message" size="40"
+	id="message">
+	<input type="button" value="send card" id="sendmessage" onclick="sendMessage()" disabled="true">
+	<div id="displaydiv" style="border:1px solid black;width:600px; height:400px;
+	font-size:14px;"></div>
+</body>
+</html>

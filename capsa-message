@@ -1,0 +1,52 @@
+---game message capsa---
+
+connection
+	join room = accept request
+
+gameplay
+	your turn										04
+	ready (creator)									00
+	card content & card sum -> winning celebration	01-5/1;6/2;7/3;8/1;9/4
+	skip											02
+	register										03-username
+	player id										username / xxxxx(port number)
+	
+warning message
+	invalid turn			05
+	invalid cardconfig		06
+
+card message
+	as		1
+	jack	11
+	queen	12
+	king	13
+	
+	wajik 		1
+	keriting	2
+	hati		3
+	sekop		4
+	
+card config
+	single			1
+	double			2
+	straight		3
+	flush			4
+	full-house		5
+	bomb			6
+	straight fh		7
+	
+to-do
+	player abstraction			v
+	dynamic room creation		
+	card comparison function	
+	username from API			
+	
+last doing
+	single card comparison scheme
+	
+issue
+	passing array to function parameter		v
+	
+catatan perbaikan desain
+	websocket atribut player, bukan port saja
+	bentuk banyak method dari objek player
