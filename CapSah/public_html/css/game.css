@@ -1,0 +1,206 @@
+/* 
+    Document   : game.css
+    Created on : Jul 16, 2013, 3:47:16 PM
+    Author     : Felix
+    Description:
+        Purpose of the stylesheet follows.
+*/
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: moz-none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#gamecanvas {
+    background:url(../images/roomgamebackground.png) no-repeat;
+    background-position: center;
+}
+
+#gamecontainer {
+    width: 640px;
+    height: 480px;
+    background: url(../images/homescreen.jpg);
+}
+
+.gamelayer {
+    width: 640px;
+    height: 480px;
+    position: absolute;
+}
+
+#gamescreen #okbutton {     /*useless*/
+    margin: 45px;
+    position: absolute;
+    top:345px;
+    left:430px;
+    cursor: pointer;
+}
+
+#gamescreen #passbutton {   /*useless*/
+    margin: 45px;
+    position: absolute;
+    top:345px;
+    left:40px;
+    cursor: pointer;
+}
+
+#homescreen {
+    padding-top: 90px;
+    text-align: center;
+}
+
+#homescreen img {
+    margin: 10px;
+}
+
+#homescreen #startup {
+    cursor: pointer;
+}
+
+#loadingmessage {
+    margin-top:400px;
+    text-align:center;
+    height:48px;
+    color:white;
+    background:url(images/loader.gif) no-repeat center;
+    font:12px Arial;
+}
+
+#loadingscreen {
+    background:rgba(100,100,100,0.3);
+}
+
+#lobbyscreen {
+    background:url(../images/gamebackground.png) no-repeat;
+    background-position: center;
+}
+
+#lobbyscreen #createbutton {
+    position: absolute;
+    top: 360px;
+    left: 330px;
+    cursor: pointer;
+}
+
+
+#lobbyscreen .room {
+    width: 250px;
+    height: 70px;
+    margin: 10px;
+    float: left;
+    cursor: pointer;
+    background:url(../images/button/RoomButton.png) no-repeat;
+}
+
+#lobbyscreen #roomcontainer {
+    margin-left: 50px;
+    margin-top: 80px;
+}
+
+#lobbyscreen .roominfo {
+    padding-top: 15px;
+    padding-left: 20px;
+}
+
+p.left {
+    position: absolute;
+    top:70px;
+    left:20px;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+
+p.player {
+    position: absolute;
+    top:315px;
+    left:300px;    
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+
+p.right {
+    position: absolute;
+    top:70px;
+    left:520px;    
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+
+p.top {
+    position: absolute;
+    top:110px;
+    left:300px;    
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+}
+
+#roomscreen {
+    background:url(../images/roomgamebackground.png) no-repeat;
+    background-position: center;
+}
+
+#roomscreen #exitbutton {
+    margin: 45px;
+    position: absolute;
+    top:345px;
+    left:430px;
+    cursor: pointer;
+}
+
+
+#roomscreen #readyleft {
+    margin: 45px;
+    position: absolute;
+    top:170px;
+}
+
+#roomscreen #readyright {
+    margin: 45px;
+    position: absolute;
+    top:170px;
+    left:500px;
+}
+
+#roomscreen #readytop {
+    margin: 45px;
+    text-align: center;
+}
+
+#roomscreen #startbutton {
+    position: absolute;
+    top: 390px;
+    left: 280px;
+    cursor: pointer;
+}
+
+#turnscreen .turn#leftturn {
+    position: absolute;
+    left: 10px;
+    top: 110px;
+}
+
+#turnscreen .turn#rightturn {
+    position: absolute;
+    left:514px;
+    top: 110px;
+}
+
+#turnscreen .turn#playerturn {
+    position: absolute;
+    top: 354px;
+    left: 190px;
+
+}
+
+#turnscreen .turn#topturn {
+    position: absolute;
+    top: 10px;
+    left: 190px;
+}
