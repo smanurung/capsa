@@ -1,0 +1,54 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Cap Sah GDP </title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="js/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="js/game.js" type="text/javascript" charset="utf-8"></script>
+        <link rel="stylesheet" href="css/game.css" type="text/css" media="screen" charset="utf-8">
+    </head>
+    <body>
+        <div id="gamecontainer">
+
+            <div id="homescreen" class="gamelayer">
+                <img id="imgtitle" src="images/CAPSAH!.png" alt="Title Game"><br>
+                <img id="startup" src="images/button/StartUp.png" alt="Start Button">
+            </div>
+            <div id="lobbyscreen" class="gamelayer"></div>
+            <div id="gamescreen" class="gamelayer">
+                <!--
+                <div id="okbutton"><img src="images/button/ok.png" alt="Ok"></div>
+                <div id="passbutton"><img src="images/button/pass.png" alt="Pass"></div>
+                -->
+                <p class="left">left</p>
+                <p class="top">top</p>
+                <p class="right">right</p>
+                <p class="player">player</p>
+            </div>            
+            <div id="roomscreen" class="gamelayer">
+                <div id="readyleft"><img src="images/checks.png" alt="Check"></div>
+                <div id="readytop"><img src="images/checks.png" alt="Check"></div>
+                <div id="readyright"><img src="images/checks.png" alt="Check"></div>
+                <div id="exitbutton"><img src="images/button/exit.png" alt="Exit"></div>
+                <div id="startbutton"><img src="images/button/ready.png" alt="Ready"></div>
+                <!--                <p class="left">left</p>
+                                <p class="top">top</p>
+                                <p class="right">right</p>
+                                <p class="player">player</p>-->
+            </div>
+            <div id="turnscreen" class="gamelayer">
+                <img id="leftturn" class="turn" src="images/cardspotturnV.png" alt="leftturn">
+                <img id="rightturn" class="turn" src="images/cardspotturnV.png" alt="rightturn">
+                <img id="topturn" class="turn" src="images/cardspotturnH.png" alt="topturn">
+                <img id="playerturn" class="turn" src="images/cardspotturnH.png" alt="playerturn">
+            </div>
+            <canvas id="gamecanvas" width="640" height="480" class="gamelayer">                
+            </canvas>
+            <div id="loadingscreen"></div>
+        </div>
+    </body>
+</html>
