@@ -129,11 +129,9 @@ function getCardArr(){
 		for(jenis=1;jenis<5;jenis++){
 			var temp=[];
 			temp.push(angka);temp.push(jenis);
-//			console.log(temp);
 			allcard.push(temp);
 		}
 	}
-//	console.log(allcard);
 	return allcard;
 }
 
@@ -216,7 +214,7 @@ function getMax(c){
 
 //return true if a > b
 function compareOneCard(a,b){
-	let sem = [a,b];
+	var sem = [a,b];
 	for (i in sem){
 		if ((sem[i][0] === 1) || (sem[i][0] === 2)) sem[i][0] += 13;
 	}
@@ -236,7 +234,7 @@ function compareCard(c,d){
 //		jika konfigurasi kartu sama atau berbeda-5-kartu
 		if ((getCardConfig(c) === 1) || (getCardConfig(c) === 2)){
 //			perbandingan single double
-			let sem=[getMax(c),getMax(d)];
+			sem=[getMax(c),getMax(d)];
 			
 //			console.log('kartu untuk dibandingkan');
 //			console.log(sem);
@@ -252,15 +250,15 @@ function compareCard(c,d){
 //				jika konfigurasi kartu sama
 				if(getCardConfig(c)===4){
 //					perbandingan flush
-					let maxC = getMax(c);
-					let maxD = getMax(d);
+					var maxC = getMax(c);
+					var maxD = getMax(d);
 					if(maxC[1]>maxD[1]) return true;
 					else if (maxC[1]===maxC[1]) return (maxC[0]>maxD[0]);
 					else return false;
 				} else if (getCardConfig(c)===7){
 //					perbandingan bomb
-					if(c[0][0]!==c[1][0]) let maxC = c[1];
-					if(d[0][0]!==d[1][0]) let maxD = d[1];
+					if(c[0][0]!==c[1][0]) var maxC = c[1];
+					if(d[0][0]!==d[1][0]) var maxD = d[1];
 					return (maxC[0]>maxD[0]); //nilai kartu tidak mungkin sama
 				}
 				return compareOneCard(getMax(x),getMax(d));
@@ -283,7 +281,9 @@ function getNextPlayer(p){
 	if (idx !== -1) {
 		if (idx === (playerList.length -1)) idx -= playerList.length;
 		idx += 1;
-		return playerList[idx];
+//		mencari kembali jika next player termasuk dlm skipList
+		if(playerList[idx].port in skipList) return getNextPlayer(playerList[idx]);
+		else return playerList[idx];
 	} else return {};
 }
 
@@ -315,6 +315,7 @@ var mArr;					//message array
 var turn;					
 var currentCard=[];			//kartu terbesar terakhir
 var isFinish=false;			//kondisi berhenti
+var skipList=[];
 
 wsServer.on('request',function(request){
 	if(!connectionIsAllowed(request)){
@@ -390,9 +391,9 @@ wsServer.on('request',function(request){
 //					uji validitas kartu
 //					console.log('pasti masuk sini');
 					if (getCardConfig(temp) !== -1) {
-//						console.log('pasti ngga masuk sini');
+						console.log('konfigurasi kartu	: '+getCardConfig(temp));
 						var retval = compareCard(temp,currentCard);
-						console.log('return value: '+retval);
+						console.log('hasil compare card: '+retval);
 						if (retval) {
 //							current card diganti
 							currentCard=temp;
@@ -426,7 +427,26 @@ wsServer.on('request',function(request){
 					console.log('masih giliran: '+turn.username);
 				}
 			} else if ((mArr[0] === '02')&&(ready)){
-				console.log('isi pesan	: pemain skip');
+				console.log('isi pesan	: '+getUsername(this.socket._peername.port)+' skip');
+				skipList.push(this.socket._peername.port);
+				
+//				cek jumlah player yang skip
+				if(skipList.length===(playerList.length-1)) {
+//					cari pemain yg blm skip
+					for(p in playerList){
+						if(!(playerList[p].port in skipList)) {
+							turn=playerList[p];
+							getWebsocket(playerList[p].port).send('04');
+							console.log('giliran berikutnya: '+playerList[p].username);
+						}
+					}
+				} else{
+//					pesan giliran berikutnya
+					turn = getNextPlayer(turn);
+					ws = getWebsocket(turn.port);
+					ws.send('04');
+					console.log('giliran berikutnya: '+turn.username);
+				}
 			} else if (mArr[0] === '03'){
 //				register player name
 				if (mArr[1] === '') mArr[1] = 'default';
