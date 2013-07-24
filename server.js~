@@ -156,7 +156,6 @@ function shuffle(){
 	return playerCardList;
 }
 
-
 function getWebsocket(portnum){
 	for(p in connectedClients){
 		if (connectedClients[p].socket._peername.port === portnum) return connectedClients[p];
@@ -433,11 +432,26 @@ wsServer.on('request',function(request){
 //				cek jumlah player yang skip
 				if(skipList.length===(playerList.length-1)) {
 //					cari pemain yg blm skip
+//					console.log('isi skiplist');console.log(skipList);
+//					console.log('port yang skip');console.log(this.socket._peername.port);
 					for(p in playerList){
-						if(!(playerList[p].port in skipList)) {
+//						console.log(skipList.indexOf(playerList[p]));
+						if((skipList.indexOf(playerList[p].port))===-1) {
+//							console.log('masuk cuma sekali');
+
+//							kosongkan current card
+							currentCard=[];
+							
+//							kosongkan skiplist
+							skipList.length=0;
+							console.log('skip list berhasil dihapus');
+
+//							ganti giliran player
 							turn=playerList[p];
 							getWebsocket(playerList[p].port).send('04');
 							console.log('giliran berikutnya: '+playerList[p].username);
+							
+							break;
 						}
 					}
 				} else{
@@ -447,6 +461,7 @@ wsServer.on('request',function(request){
 					ws.send('04');
 					console.log('giliran berikutnya: '+turn.username);
 				}
+//				console.log('loop skip, harusnya stop disini');
 			} else if (mArr[0] === '03'){
 //				register player name
 				if (mArr[1] === '') mArr[1] = 'default';
