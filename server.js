@@ -114,13 +114,6 @@ function getCardConfig(c){
 	} else return -1;
 }
 
-/*function Player(username, port, sum, cards){
-	this.username=username;
-	this.port=port;
-	this.sum=sum;
-	this.cards=cards;
-}*/
-
 //PseudoClass Player
 function Player(uName,ws){
 	this.username=uName;
@@ -389,15 +382,6 @@ function getRoom(roomL,roomid){
 	return {};
 }
 
-/*var connectedClientsCount=0;
-var connectedClients=[];	//list of client websocket
-var playerList=[];
-var ready=false;			//readiness to play
-var turn;					
-var currentCard=[];			//kartu terbesar terakhir
-var isFinish=false;			//kondisi berhenti
-var skipList=[];*/
-
 wsServer.on('request',function(request){
 	if(!connectionIsAllowed(request)){
 		request.reject();
@@ -405,10 +389,6 @@ wsServer.on('request',function(request){
 		return;
 	}
 	var websocket = request.accept();
-	
-//	menyimpan client yang terhubung
-/*	connectedClientsCount++;
-	connectedClients.push(websocket);*/
 	
 	console.log('WebSocket Connection dari '+request.remoteAddress+'/'+websocket.socket._peername.port+' diterima');
 	websocket.send('halo. Anda sudah terhubung dengan WebSocket Server');
@@ -427,10 +407,12 @@ wsServer.on('request',function(request){
 			
 //			broadcast
 			if (room.hasOwnProperty('playerList')) {
-				var pList = room.getPlayerList();
+				var pList = room.getPlayerList();				
+				if(mArr[0]==='01') mArr[2] = mArr[2].split('/');
+				
 				for (var p in pList){
 					if (pList[p].getWebSocket() !== this) {
-						pList[p].getWebSocket().send(message.utf8Data);
+						pList[p].getWebSocket().send(JSON.stringify(mArr));
 					}
 				}
 			}
@@ -462,7 +444,12 @@ wsServer.on('request',function(request){
 					room.setTurn(nowturn.getUsername());
 					
 					nowturn.getWebSocket().send('04');
-					this.send(SUCCESS);
+					
+					var res = new Array();
+					res.push('2000');
+					res.push('00');
+					
+					this.send(JSON.stringify(res));
 					console.log('giliran pertama: '+nowturn.getUsername());
 				} else {
 					this.send('warning. room '+room.getID()+' sudah penuh');
@@ -510,7 +497,12 @@ wsServer.on('request',function(request){
 								room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
 
 								room.getPlayer(room.getTurn()).getWebSocket().send('04');
-								this.send(SUCCESS);
+								
+								var res = new Array();
+								res.push('2000');
+								res.push('01');
+								
+								this.send(JSON.stringify(res));
 								console.log('giliran berikutnya: '+room.getTurn());
 							}
 						} else {
@@ -547,10 +539,14 @@ wsServer.on('request',function(request){
 
 //							ganti giliran player
 							room.setTurn(pList[p].getUsername());
-							
-							
+														
 							pList[p].getWebSocket().send('04');
-							this.send(SUCCESS);
+							
+							var res = new Array();
+							res.push('2000');
+							res.push('02');
+							
+							this.send(JSON.stringify(res));
 							console.log('giliran berikutnya: '+pList[p].getUsername());
 							
 							break;
@@ -562,7 +558,23 @@ wsServer.on('request',function(request){
 					room.getPlayer(room.getTurn()).getWebSocket().send('04');
 					console.log('giliran berikutnya: '+room.getTurn());
 				}
-			}else if (mArr[0]==='08'){
+			} else if(mArr[0] === '03'){
+//				kirim list room
+				var availroom='';
+
+				var res = new Array();
+				res.push('2000');
+				res.push('03');
+
+				if (roomList.length!==0){
+					for(var r in roomList){
+						res.push(roomList[r].getID());
+					}
+				}
+				console.log('room tersedia: '+availroom);
+				
+				this.send(JSON.stringify(res));
+			} else if (mArr[0]==='08'){
 //				create room
 				var room = new Room(mArr[1]);
 				roomList.push(room);
@@ -572,27 +584,32 @@ wsServer.on('request',function(request){
 				var player=new Player(dummy,this);
 				room.addPlayer(player);
 				
-				this.send(SUCCESS);
+				var res = new Array();
+				res.push('2000');
+				res.push('08');
+				
+				this.send(JSON.stringify(res));
 				console.log('User '+player.username+' berhasil membentuk room \''+mArr[1]+'\'');
 			}else if(mArr[0]==='09'){
 //				join room
 				var dummy=String(this.socket._peername.port);
 				var player=new Player(dummy,this);
-//				var room=getRoom(roomList,mArr[1]);
-//				if (typeof room !== 'undefined') room.addPlayer(player);
 				room.addPlayer(player);
 				
-				this.send(SUCCESS);
+				var res = new Array();
+				res.push('2000');
+				res.push('09');
+				
+				this.send(JSON.stringify(res));
 				console.log('User '+player.username+' berhasil masuk ke room \''+room.id+'\'');
 			}
 		} else{
 			console.log('warning. pesan bukan dalam format utf-8');
 			this.send('warning. pesan bukan dalam format utf-8');
-//			this.send(WARNING_ROOM_NOT_FULL);
 		}
 	});
 	
 	websocket.on('close',function(reasonCode,description){
-		console.log('WebSocket Connection dari '+request.remoteAddress+'/'+this.socket._peername.port+' closed');
+		console.log('WebSocket Connection dari '+request.remoteAddress+'/'+this.socket._peername.port+' ditutup');
 	});
 });
