@@ -5,15 +5,21 @@ connection
 
 gameplay
 	your turn										04
-	ready (creator)									00
-	card content & card sum -> winning celebration	01-5/1;6/2;7/3;8/1;9/4
-	skip											02
-	register										03-username
+	ready (creator)									00-<roomid>
+	card content & card sum -> winning celebration	01-<roomid>-5/1;6/2;7/3;8/1;9/4
+	skip											02-<roomid>
 	player id										username / xxxxx(port number)
+	win												99-username
+	
+	create room		08-roomID
+	join room		09-roomID		
 	
 warning message
 	invalid turn			05
 	invalid cardconfig		06
+	config kartu tak sesuai / lebih kecil	07
+
+success message				2000
 
 card message
 	as		1
@@ -38,7 +44,7 @@ card config
 to-do
 	player abstraction			v
 	dynamic room creation		
-	card comparison function	
+	card comparison function	v
 	username from API			
 	
 last doing

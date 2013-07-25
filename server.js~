@@ -1,9 +1,13 @@
 #!/usr/bin/env node
+
+"use strict"
+
 var http=require('http');
 
-const WARNING_ROOM_FULL='Warning. Jumlah pemain sudah penuh\n';
-const WARNING_ROOM_NOT_FULL='Warning. Jumlah pemain belum cukup\n';
-const DEFAULT_TURN=0;
+var SUCCESS = '2000';
+var WARNING_ROOM_FULL='Warning. Jumlah pemain sudah penuh\n';
+var WARNING_ROOM_NOT_FULL='Warning. Jumlah pemain belum cukup\n';
+var ROOM_CAPACITY=4;
 
 var i=0;
 var server=http.createServer(function(request,response){
@@ -24,13 +28,14 @@ var wsServer = new WebSocketServer({
 });
 
 function connectionIsAllowed(request){
-	return connectedClientsCount<4;
+//	return connectedClientsCount<4;
+	return true;
 }
 
 function isAngkaSama(c){
 	if (typeof c !== 'undefined' && c.length >0) {
 		var angka = c[0][0];
-		for (t in c) {
+		for (var t in c) {
 			if (c[t][0] !== angka) return false;
 		}
 		return true;
@@ -48,9 +53,7 @@ function isStraight(c){
 //		kasus as tersebar
 		if ((c[0][0] === '1') && (c[4][0] === '13')) c[0][0] = String(parseInt(c[0][0])+8);
 		
-//		var urut = true;
-//		console.log(sorted);
-		for (i=1; i<5; i++) {
+		for (var i=1; i<5; i++) {
 			if (parseInt(c[i][0]) !== parseInt(c[i-1][0]) + 1) return false;
 		}
 		return true;
@@ -60,7 +63,7 @@ function isStraight(c){
 function isFlush(c){
 	if (typeof c !== 'undefined' && c.length>0) {
 		var jenis = c[0][1];
-		for (j in c) if (c[j][1] !== jenis) return false;
+		for (var j in c) if (c[j][1] !== jenis) return false;
 		return true;
 	} else return false;
 }
@@ -68,20 +71,16 @@ function isFlush(c){
 function isFullHouse(c){
 	if ((typeof c !== 'undefined') && (c.length === 5)){
 		var counter = {};
-		for (i in c) {
+		for (var i in c) {
 			if (c[i][0] in counter) {
-//				console.log('sama');
 				counter[c[i][0]] += 1;
 			} else {
 				counter[c[i][0]] = 1;
 			}
 		}
-//		console.log(counter);
-//		console.log(Object.keys(counter).length);
 		
 		if (Object.keys(counter).length === 2) {
-			for (i in counter) {
-//				console.log('counter 1: '+counter[i]+typeof counter[i]);
+			for (var i in counter) {
 				if((counter[i] === 3) || (counter[i] === 2)) {}
 				else return false;
 			}
@@ -115,18 +114,64 @@ function getCardConfig(c){
 	} else return -1;
 }
 
-function Player(username, port, sum, cards){
+/*function Player(username, port, sum, cards){
 	this.username=username;
 	this.port=port;
 	this.sum=sum;
 	this.cards=cards;
+}*/
+
+//PseudoClass Player
+function Player(uName,ws){
+	this.username=uName;
+	this.cardList=new Array();
+	this.webSocket=ws;
+}
+
+Player.prototype.getUsername = function(){
+	return this.username;
+}
+
+Player.prototype.getWebSocket = function(){
+	return this.webSocket;
+}
+
+Player.prototype.getCardList = function(){
+	return this.cardList;
+}
+
+Player.prototype.setCardList = function(cl){
+	this.cardList = cl;
+}
+
+Player.prototype.contains = function(c){
+	var cardList = this.getCardList();
+	if(cardList.length===0) return false;
+	else {
+		for(var a in cardList){
+			if((cardList[a][0]===c[0])&&(cardList[a][1]===c[1])){
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+Player.prototype.removeCard = function(c){
+	var foo = this.getCardList();
+	for(var c in foo){
+		if (isSameCard(foo[c],c)) {
+			this.setCardList(this.getCardList().splice(parseInt(c),1));
+			break;
+		}
+	}
 }
 
 function getCardArr(){
 	var allcard=[];
 //	masukan kartu ke array
-	for(angka=1;angka<14;angka++){
-		for(jenis=1;jenis<5;jenis++){
+	for(var angka=1;angka<14;angka++){
+		for(var jenis=1;jenis<5;jenis++){
 			var temp=[];
 			temp.push(angka);temp.push(jenis);
 			allcard.push(temp);
@@ -135,71 +180,14 @@ function getCardArr(){
 	return allcard;
 }
 
-function shuffle(){
-	var allcard=[];
-	var playerCardList=[[],[],[],[]];
-	var rand;
-	
-	allcard=getCardArr();
-//	console.log(allcard);
-	
-//	console.log('bil random: '+rand);
-//	console.log('allcard: '+typeof allcard);
-	for(i=0;i<(52/playerList.length);i++){
-		for(j=0;j<playerList.length;j++){
-			rand=Math.floor(Math.random()*allcard.length);
-			playerCardList[j].push(allcard[rand]);
-			allcard.splice(rand,1);
-		}
-	}
-//	console.log(playerCardList);
-	return playerCardList;
-}
-
-function getWebsocket(portnum){
-	for(p in connectedClients){
-		if (connectedClients[p].socket._peername.port === portnum) return connectedClients[p];
-	}
-	return 0;
-}
-
-function isMember(arr,c){
-//	console.log(arr);
-	if(arr.length===0) return false;
-	else {
-		for(a in arr){
-			if((arr[a][0]===c[0])&&(arr[a][1]===c[1])){
-//				console.log('kartu: '+arr[a][0]+'&'+arr[a][1]);
-				return true;
-			}
-		}
-		return false;
-	}
-}
-
-// return player who owns c card
-function findCard(c){
-	for(i in playerList){
-		if (isMember(playerList[i].cards,c)) {
-			return playerList[i];
-		}
-	}
-}
-
-function getUsername(port){
-	for(p in playerList){
-		if(playerList[p].port === port) return playerList[p].username;
-	} return '';
-}
-
 function isTurn(portnum){
 	if (getUsername(portnum) !== '') return (getUsername(portnum)===turn.username);
 	else return false;
 }
 
 function cardToInteger(c){
-	for(i in c){
-		for (x in c[i]){
+	for(var i in c){
+		for (var x in c[i]){
 			c[i][x] = parseInt(c[i][x]);
 		}
 	}
@@ -214,7 +202,7 @@ function getMax(c){
 //return true if a > b
 function compareOneCard(a,b){
 	var sem = [a,b];
-	for (i in sem){
+	for (var i in sem){
 		if ((sem[i][0] === 1) || (sem[i][0] === 2)) sem[i][0] += 13;
 	}
 	if (sem[0][0] === sem[1][0]) return (sem[0][1]>sem[1][1]);
@@ -233,11 +221,9 @@ function compareCard(c,d){
 //		jika konfigurasi kartu sama atau berbeda-5-kartu
 		if ((getCardConfig(c) === 1) || (getCardConfig(c) === 2)){
 //			perbandingan single double
-			sem=[getMax(c),getMax(d)];
+			var sem=[getMax(c),getMax(d)];
 			
-//			console.log('kartu untuk dibandingkan');
-//			console.log(sem);
-			for (i in sem) {
+			for (var i in sem) {
 				if ((sem[i][0] === 1) || (sem[i][0] === 2)) sem[i][0] += 13;
 			}
 			if (sem[0][0] === sem[1][0]) return (sem[0][1]>sem[1][1]);
@@ -267,54 +253,150 @@ function compareCard(c,d){
 	} else return false; //konfigurasi kartu tdk sama
 }
 
-function getPlayerIndex(p){
-	for(q in playerList) {
-		if (playerList[q].username === p.username) return parseInt(q);
-	}
-	return -1;
-}
-
-// player after p
-function getNextPlayer(p){
-	var idx = getPlayerIndex(p);
-	if (idx !== -1) {
-		if (idx === (playerList.length -1)) idx -= playerList.length;
-		idx += 1;
-//		mencari kembali jika next player termasuk dlm skipList
-		if(playerList[idx].port in skipList) return getNextPlayer(playerList[idx]);
-		else return playerList[idx];
-	} else return {};
-}
-
 //true jika c = d
 function isSameCard(c,d){
-//	console.log('banding');console.log(c);console.log(d);
 	return ((c[0]===d[0])&&(c[1]===d[1]));
 }
 
-//not remove array of card
-function removeCard(player, card){
-//	console.log('harusnya player yang lagi main skrg');
-//	console.log(player);
-	for(c in player.cards){
-//		console.log(player.cards[c]);
-		if (isSameCard(player.cards[c],card)) {
-			player.cards.splice(parseInt(c),1);
-			break;
+//PseudoClass Room
+function Room(id){
+	this.id=id;
+	this.playerList=new Array();
+	this.turn='';
+	this.currentCard=new Array();
+	this.skipList=new Array();
+	this.isFinish=false;
+	this.isReady=false;
+}
+
+Room.prototype.getID = function(){
+	return this.id;
+}
+
+Room.prototype.addPlayer = function(p){
+	this.playerList.push(p);
+}
+
+Room.prototype.getPlayerList = function(){
+	return this.playerList;
+}
+
+Room.prototype.getCurrentCard = function(){
+	return this.currentCard;
+}
+
+Room.prototype.setCurrentCard = function(cc){
+	this.currentCard = cc;
+}
+
+Room.prototype.getSkipList = function(){
+	return this.skipList;
+}
+
+Room.prototype.getPlayer = function(pName){
+	var pList = this.getPlayerList();
+	for(var p in pList){
+		if(pList[p].getUsername() === pName) return pList[p];
+	}
+}
+
+Room.prototype.getTurn = function(){
+	return this.turn;
+}
+
+Room.prototype.setTurn = function(t){
+	this.turn = t;
+}
+
+Room.prototype.getIsReady = function(){
+	return this.isReady;
+}
+
+Room.prototype.setReady = function(readyV){
+	this.isReady = readyV;
+}
+
+//p -> player username
+Room.prototype.addSkipList = function(p){
+	this.getSkipList().push(p);
+}
+
+Room.prototype.emptySkipList = function(){
+	this.skipList.length = 0;
+}
+
+Room.prototype.isFull = function(){
+	return (this.playerList.length === ROOM_CAPACITY);
+}
+
+Room.prototype.shuffle = function(){
+	var allcard=[];
+	var playerCardList=[[],[],[],[]];
+	var rand;
+	
+	allcard=getCardArr();
+	
+	for(var i=0; i<(52/this.getPlayerList().length);i++){
+		for(var j=0;j<this.getPlayerList().length;j++){
+			rand=Math.floor(Math.random()*allcard.length);
+			playerCardList[j].push(allcard[rand]);
+			allcard.splice(rand,1);
+		}
+	}
+	return playerCardList;
+}
+
+// return player who owns c card
+Room.prototype.findCard = function(c) {
+	var pList = this.getPlayerList();
+	for(var i in pList){
+		if (pList[i].contains(c)) {
+			return pList[i].getUsername();
 		}
 	}
 }
 
+//input p player
+Room.prototype.getNextPlayer = function(p){
+	var idx = this.getPlayerIndex(p);
+	if (idx !== -1) {
+		if (idx === (this.getPlayerList().length -1)) idx -= this.getPlayerList().length;
+		idx += 1;
+//		mencari kembali jika next player termasuk dlm skipList
+		var pList=this.getPlayerList();
+		if(pList[idx].port in this.getSkipList()) return this.getNextPlayer(this.getPlayerList()[idx]);
+		else return this.getPlayerList()[idx];
+	} else return {};
+}
+
+Room.prototype.getPlayerIndex = function(p){
+	var pList=this.getPlayerList();
+	for(var q in pList) {
+		if (pList[q].getUsername() === p.getUsername()) return parseInt(q);
+	}
+	return -1;
+}
+
+
 //global variable
-var connectedClientsCount=0;
+
+var roomList=new Array();
+
+function getRoom(roomL,roomid){
+	for (var r in roomL){
+		if(roomL[r].id===roomid) return roomL[r];
+	}
+	return {};
+}
+
+/*var connectedClientsCount=0;
 var connectedClients=[];	//list of client websocket
 var playerList=[];
 var ready=false;			//readiness to play
-var mArr;					//message array
 var turn;					
 var currentCard=[];			//kartu terbesar terakhir
 var isFinish=false;			//kondisi berhenti
-var skipList=[];
+var skipList=[];*/
 
 wsServer.on('request',function(request){
 	if(!connectionIsAllowed(request)){
@@ -325,156 +407,189 @@ wsServer.on('request',function(request){
 	var websocket = request.accept();
 	
 //	menyimpan client yang terhubung
-	connectedClientsCount++;
-	connectedClients.push(websocket);
+/*	connectedClientsCount++;
+	connectedClients.push(websocket);*/
 	
 	console.log('WebSocket Connection dari '+request.remoteAddress+'/'+websocket.socket._peername.port+' diterima');
 	websocket.send('halo. Anda sudah terhubung dengan WebSocket Server');
 	
 	websocket.on('message',function(message){
-//		console.log(message);
-//		websocket.send(message);
-//		console.log(message.type);
-		if((message.type === 'utf8')&&(connectedClientsCount === 2)){
-//			console.log('pesan dari klien: '+message.utf8Data);
+//		message array
+		var mArr=new Array();
+		
+		if(message.type === 'utf8'){
 
 //			kode pesan
 			mArr=message.utf8Data.split('-');
-			console.log('kode pesan	: '+mArr[0]);
 			
-			if(mArr[0] === '00') {
-				console.log('isi pesan	: state => ready');
-				ready=true;
-				
-//				kocok kartu
-				var playerCardList=[[],[],[],[]];
-				playerCardList=shuffle();
-//				console.log(playerCardList);
-				
-//				masukan ke playerList
-				for (p in playerList){
-					playerList[p].sum=playerCardList[p].length;
-					playerList[p].cards=playerCardList[p];
+//			mencari room sesuai
+			var room=getRoom(roomList,mArr[1]);
+			
+//			broadcast
+			if (room.hasOwnProperty('playerList')) {
+				var pList = room.getPlayerList();
+				for (var p in pList){
+					if (pList[p].getWebSocket() !== this) {
+						pList[p].getWebSocket().send(message.utf8Data);
+					}
 				}
+			}
+			
+			if(mArr[0] === '00') {				
+				if (!room.isFull()){
+//					prepare for gameplay
+					room.setReady(true);
 				
-				var ws; //websocket sementara
-//				kirim ke client
-				for (p in playerList) {
-					ws = getWebsocket(playerList[p].port);
-					var mesg_json = JSON.stringify(playerList[p].cards);
-					if (ws !== 0) ws.send(mesg_json);
+//					kocok kartu
+					var randomList=[[],[],[],[]];
+					randomList=room.shuffle();
+				
+//					masukan ke playerList
+					var pList = room.getPlayerList();
+					for (var p in pList){
+						pList[p].setCardList(randomList[p]);
+					}
+				
+//					kirim ke client
+					for (var p in pList) {
+						var mesg_json = JSON.stringify(pList[p].getCardList());
+						pList[p].getWebSocket().send(mesg_json);
+					}
+				
+//					giliran (pertama)
+					var firstCard=[3,1];
+					var nowturn = room.getPlayer(room.findCard(firstCard));
+					room.setTurn(nowturn.getUsername());
+					
+					nowturn.getWebSocket().send('04');
+					this.send(SUCCESS);
+					console.log('giliran pertama: '+nowturn.getUsername());
+				} else {
+					this.send('warning. room '+room.getID()+' sudah penuh');
+					console.log('warning. room '+room.getID()+' sudah penuh');
 				}
-				
-//				giliran (pertama)
-				var lowestCard=[3,1]; turn = findCard(lowestCard);
-				console.log('giliran sekarang: '+turn.username);
-
-				ws = getWebsocket(turn.port);
-				if (ws !== 0) ws.send('04');
-				
-			} else if ((mArr[0] === '01') && (ready)) {
-//				Player move
+			} else if ((mArr[0] === '01') && (room.getIsReady())) {
+//				player move
 				console.log('isi pesan	: pemain jalan');
 
 //				proses & simpan kartu
-				var temp=mArr[1].split(';');
-//				var x = [[1,2],[3,4]];
-//				console.log(x);
-				for(c in temp) temp[c] = temp[c].split('/');
+				var temp=mArr[2].split(';');
+				for(var c in temp) temp[c] = temp[c].split('/');
 				temp=cardToInteger(temp);
-//				console.log('temp: ');
-//				console.log(temp);
 	
 //				uji giliran
-				if (isTurn(this.socket._peername.port)) {
+				if (room.getPlayer(room.getTurn()).getWebSocket() === this) {
 //					uji validitas kartu
-//					console.log('pasti masuk sini');
 					if (getCardConfig(temp) !== -1) {
 						console.log('konfigurasi kartu	: '+getCardConfig(temp));
-						var retval = compareCard(temp,currentCard);
+						var retval = compareCard(temp,room.getCurrentCard());
 						console.log('hasil compare card: '+retval);
 						if (retval) {
 //							current card diganti
-							currentCard=temp;
+							room.setCurrentCard(temp);
 							
 //							hapus kartu player terakhir
-							for(x in currentCard){
-								removeCard(turn,currentCard[x]);
+							var foo = room.getCurrentCard();
+							for(var x in foo){
+//								removeCard(turn,foo[x]);
+								room.getPlayer(room.getTurn()).removeCard(foo[x]);
 							}
-//							console.log('jml kartu maunya 25');
-//							console.log(turn.cards.length);
 							
-//							pesan giliran berikutnya
-							turn = getNextPlayer(turn);
-							ws = getWebsocket(turn.port);
-							ws.send('04');
-							console.log('giliran berikutnya: '+turn.username);
-							
+//							cek kondisi menang
+							if(room.getPlayer(room.getTurn()).getCardList().length===0){
+//								kondisi akhir
+								var pList = room.getPlayerList();
+								for(p in pList){
+									pList[p].getWebSocket().send('99-'+room.getTurn());
+								}
+								
+								console.log('---Permainan Berakhir---');
+								console.log('Pemenang	:'+room.getTurn());
+							} else {
+//								pesan giliran berikutnya
+								room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
+
+								room.getPlayer(room.getTurn()).getWebSocket().send('04');
+								this.send(SUCCESS);
+								console.log('giliran berikutnya: '+room.getTurn());
+							}
 						} else {
 							this.send('07'); //kartu tdk sesuai dgn permainan / kartu lebih rendah dari yg sharusnya
 							console.log('warning. kartu lebih kecil atau konfigurasi tidak sesuai');
-							console.log('masih giliran: '+turn.username);
+							console.log('masih giliran: '+room.getTurn());
 						}
 					} else {
 						this.send('06'); //susunan kartu salah
 						console.log('warning. susunan kartu tidak valid');
-						console.log('masih giliran: '+turn.username);
+						console.log('masih giliran: '+room.getTurn());
 					}
 				} else {
 					this.send('05'); //invalid turn
 					console.log('warning. invalid turn');
-					console.log('masih giliran: '+turn.username);
+					console.log('masih giliran: '+room.getTurn());
 				}
-			} else if ((mArr[0] === '02')&&(ready)){
-				console.log('isi pesan	: '+getUsername(this.socket._peername.port)+' skip');
-				skipList.push(this.socket._peername.port);
+			} else if ((mArr[0] === '02')&&(room.getIsReady())){
+				console.log('isi pesan	: '+room.getTurn()+' skip');
+				room.addSkipList(room.getTurn());
 				
 //				cek jumlah player yang skip
-				if(skipList.length===(playerList.length-1)) {
+				if(room.getSkipList().length===(room.getPlayerList().length-1)) {
 //					cari pemain yg blm skip
-//					console.log('isi skiplist');console.log(skipList);
-//					console.log('port yang skip');console.log(this.socket._peername.port);
-					for(p in playerList){
-//						console.log(skipList.indexOf(playerList[p]));
-						if((skipList.indexOf(playerList[p].port))===-1) {
-//							console.log('masuk cuma sekali');
-
+					var pList = room.getPlayerList();
+					for(var p in pList){
+						if((room.getSkipList().indexOf(room.getPlayerList()[p].getUsername()))===-1) {
 //							kosongkan current card
-							currentCard=[];
+							room.setCurrentCard(new Array());
 							
 //							kosongkan skiplist
-							skipList.length=0;
+							room.emptySkipList();
 							console.log('skip list berhasil dihapus');
 
 //							ganti giliran player
-							turn=playerList[p];
-							getWebsocket(playerList[p].port).send('04');
-							console.log('giliran berikutnya: '+playerList[p].username);
+							room.setTurn(pList[p].getUsername());
+							
+							
+							pList[p].getWebSocket().send('04');
+							this.send(SUCCESS);
+							console.log('giliran berikutnya: '+pList[p].getUsername());
 							
 							break;
 						}
 					}
 				} else{
 //					pesan giliran berikutnya
-					turn = getNextPlayer(turn);
-					ws = getWebsocket(turn.port);
-					ws.send('04');
-					console.log('giliran berikutnya: '+turn.username);
+					room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
+					room.getPlayer(room.getTurn()).getWebSocket().send('04');
+					console.log('giliran berikutnya: '+room.getTurn());
 				}
-//				console.log('loop skip, harusnya stop disini');
-			} else if (mArr[0] === '03'){
-//				register player name
-				if (mArr[1] === '') mArr[1] = 'default';
-				console.log('isi pesan	: username => '+mArr[1]);
-//				console.log(this.socket._peername.port);
-				playerList.push(new Player(mArr[1],this.socket._peername.port,0,[]));
-				console.log(playerList);
-			}			
-//			broadcast
-			for (var c in connectedClients){
-				if (connectedClients[c].socket._peername.port !== this.socket._peername.port) connectedClients[c].send(message.utf8Data);
+			}else if (mArr[0]==='08'){
+//				create room
+				var room = new Room(mArr[1]);
+				roomList.push(room);
+				
+//				automatic join room
+				var dummy=String(this.socket._peername.port);
+				var player=new Player(dummy,this);
+				room.addPlayer(player);
+				
+				this.send(SUCCESS);
+				console.log('User '+player.username+' berhasil membentuk room \''+mArr[1]+'\'');
+			}else if(mArr[0]==='09'){
+//				join room
+				var dummy=String(this.socket._peername.port);
+				var player=new Player(dummy,this);
+//				var room=getRoom(roomList,mArr[1]);
+//				if (typeof room !== 'undefined') room.addPlayer(player);
+				room.addPlayer(player);
+				
+				this.send(SUCCESS);
+				console.log('User '+player.username+' berhasil masuk ke room \''+room.id+'\'');
 			}
-		} else if (connectedClientsCount !== 4) this.send(WARNING_ROOM_NOT_FULL);
+		} else{
+			console.log('warning. pesan bukan dalam format utf-8');
+			this.send('warning. pesan bukan dalam format utf-8');
+//			this.send(WARNING_ROOM_NOT_FULL);
+		}
 	});
 	
 	websocket.on('close',function(reasonCode,description){
