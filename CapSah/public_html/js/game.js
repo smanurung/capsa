@@ -97,7 +97,7 @@ var game = {
                     switch (game.turn) {
                         case 0:
                             game.right -= arr.length;
-                            gameroom.drawrightcard();                            
+                            gameroom.drawrightcard();
                             break;
                         case 1:
                             break;
@@ -119,7 +119,7 @@ var game = {
                             break;
                         case 1:
                             game.right -= arr.length;
-                            gameroom.drawrightcard(); 
+                            gameroom.drawrightcard();
                             break;
                         case 2:
                             break;
@@ -141,7 +141,7 @@ var game = {
                             break;
                         case 2:
                             game.right -= arr.length;
-                            gameroom.drawrightcard(); 
+                            gameroom.drawrightcard();
                             break;
                         case 3:
                             break;
@@ -157,12 +157,23 @@ var game = {
             }
         }
     },
+    resetgame: function() {
+        game.left = 13;
+        game.top = 13;
+        game.right = 13;
+        game.turn = 0;
+        game.myturn = 0;
+        game.arr = [[10, 2], [2, 3], [12, 1], [2, 4], [10, 2], [2, 3], [12, 1], [2, 4]];
+        game.state = [false, false, false, false, false, false, false, false];
+    },
     showgamescreen: function() {
         $('.gamelayer').hide();
         $('#turnscreen').show();
         $('#gamescreen').show();
-        $('#gamecanvas').show();
+        game.drawcanvas();
         gameroom.drawnextturn();
+        $('#gamecanvas').show();
+
     },
     showlobbyscreen: function() {
         rooms.init();
@@ -353,18 +364,20 @@ var gameroom = {
         }
     },
     okevent: function() {
-        if (game.turn == game.myturn){
+        if (game.turn == game.myturn) {
             game.move();
         } else {
-            var arr = [[2,2],[3,2]];
+            var arr = [[2, 2], [3, 2]];
             game.movenonplayer(arr);
         }
         gameroom.drawnextturn();
         //alert("ok pressed!");
     },
     passevent: function() {
-        //gameroom.drawnextturn();
-        alert("pass pressed!");
+        game.resetgame();
+        gameroom.refreshtable();
+        game.showroomscreen();
+        //alert("pass pressed!");
     },
     refreshtable: function() {
         game.context.clearRect(190, 130, 260, 210);
