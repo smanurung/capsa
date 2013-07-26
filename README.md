@@ -1,4 +1,4 @@
 capsa-kaskus
 ============
 
-game capsa untuk kaskus by Felix Terahadi and Sonny Manurung
+CAPSA GAME for KASKUS FORUM by Felix Terahadi and Sonny Manurung
