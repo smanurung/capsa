@@ -13,8 +13,12 @@ var game = {
     left: 13,
     top: 13,
     right: 13,
-    turn: 0, // 0: player, 1: left, 2: top, 3: right
+    turn: 0, // current turn
     myturn: 0,
+    myname: '',
+    currentroom: '',
+    istarted: false,
+    players: new Array(),
     init: function() {
 
         mouse.init();
@@ -27,13 +31,10 @@ var game = {
         game.canvas = $('#gamecanvas')[0];
         game.context = game.canvas.getContext('2d');
 
-        game.arr = [[10, 2], [2, 3], [12, 1], [2, 4], [10, 2], [2, 3], [12, 1], [2, 4]];
-        game.state = [false, false, false, false, false, false, false, false];
-
         game.drawcanvas();
 
         $('#startup').click(function() {
-            game.showlobbyscreen();
+            roomlist();
         });
 
     },
@@ -162,9 +163,9 @@ var game = {
         game.top = 13;
         game.right = 13;
         game.turn = 0;
-        game.myturn = 0;
-        game.arr = [[10, 2], [2, 3], [12, 1], [2, 4], [10, 2], [2, 3], [12, 1], [2, 4]];
-        game.state = [false, false, false, false, false, false, false, false];
+        //game.myturn = 0;
+        game.arr = new Array();
+        game.state = [false, false, false, false, false, false, false, false,false, false,false, false, false];
     },
     showgamescreen: function() {
         $('.gamelayer').hide();
@@ -173,10 +174,12 @@ var game = {
         game.drawcanvas();
         gameroom.drawnextturn();
         $('#gamecanvas').show();
-
+    },
+    showcreatescreen: function() {
+        $('.gamelayer').hide();
+        $('#createscreen').show();
     },
     showlobbyscreen: function() {
-        rooms.init();
         $('.gamelayer').hide();
         $('#lobbyscreen').show();
     },
@@ -189,20 +192,23 @@ var game = {
 }
 
 var rooms = {
+    roomlist: new Array(),
     init: function() {
         var html = "<div id='roomcontainer'><img id='createbutton' src='images/button/createroom.png' alt='Create'>";
-        for (var i = 0; i < 1; i++) {
-            html += '<div class="room" id="room' + i + '"><div class="roominfo">room' + (i + 1) + '<br></div></div>';
+        for (var i = 0; i < rooms.roomlist.length; i++) {
+            //html += '<div class="room"><div class="roominfo" id="' + rooms.roomlist[i] + '">' + rooms.roomlist[i] + '<br></div></div>';
+            html += '<div class="room">' + rooms.roomlist[i] + '</div>';
         }
         html += "</div>"
         $('#lobbyscreen').html(html);
 
         $('.room').click(function() {
-            game.showroomscreen();
+            join($(this).html());
+            //game.showroomscreen();
         });
 
         $('#createbutton').click(function() {
-            alert("create pressed");
+            game.showcreatescreen();
         });
     }
 }
@@ -214,6 +220,7 @@ var gameroom = {
         $('#readyright').hide();
 
         $('#startbutton').click(function() {
+            startgame();
             game.showgamescreen();
         });
 
@@ -252,11 +259,6 @@ var gameroom = {
         }
     },
     drawnextturn: function() {
-//        if (game.turn < 3) {
-//            game.turn++;
-//        } else {
-//            game.turn = 0;
-//        }
         $('#turnscreen .turn').hide();
         switch (game.myturn) {
             case 0:
@@ -365,19 +367,49 @@ var gameroom = {
     },
     okevent: function() {
         if (game.turn == game.myturn) {
-            game.move();
+            playermove();
+            //game.move();
         } else {
-            var arr = [[2, 2], [3, 2]];
-            game.movenonplayer(arr);
+            //var arr = [[2, 2], [3, 2]];
+            //game.movenonplayer(arr);
         }
-        gameroom.drawnextturn();
-        //alert("ok pressed!");
     },
     passevent: function() {
         game.resetgame();
         gameroom.refreshtable();
         game.showroomscreen();
-        //alert("pass pressed!");
+    },
+    refreshplayer: function() {
+        // search
+        for (var i = 0; i < game.players.length; i++) {
+            if (game.players[i] == game.myname) {
+                game.myturn = i;
+                
+                break;
+            }
+        }
+        idx2 = 0 - game.myturn;
+        idx = 0;
+        if (idx2 < 0) {
+            for (var i = 0; i > idx2; i--) {
+                if (idx == 0) {
+                    idx = 3;
+                } else {
+                    idx--;
+                }
+            }
+        }
+
+        for (var i = 0; i < game.players.length; i++) {
+            var locationname = '#' + idx;
+            $(locationname).html(game.players[i]);
+
+            if (idx < 3) {
+                idx++;
+            } else {
+                idx = 0;
+            }
+        }
     },
     refreshtable: function() {
         game.context.clearRect(190, 130, 260, 210);
@@ -439,11 +471,6 @@ var mouse = {
             }
             if (n < game.state.length) {
                 game.state[n] = !game.state[n];
-//                var x = '' + n + ' ' + board[4];
-//                for (var i = 0; i < game.state.length; i++) {
-//                    x += ' ' + game.state[i];
-//                }                
-//                alert(x);
                 gameroom.drawplayercard();
             }
         }

@@ -9,9 +9,10 @@ and open the template in the editor.
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script src="js/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="js/game.js" type="text/javascript" charset="utf-8"></script>
+        <script src="js/websocket.js" type="text/javascript" charset="utf-8"></script>
         <link rel="stylesheet" href="css/game.css" type="text/css" media="screen" charset="utf-8">
     </head>
-    <body>
+    <body onload="initWebSocket();">
         <div id="gamecontainer">
 
             <div id="homescreen" class="gamelayer">
@@ -19,15 +20,21 @@ and open the template in the editor.
                 <img id="startup" src="images/button/StartUp.png" alt="Start Button">
             </div>
             <div id="lobbyscreen" class="gamelayer"></div>
+            <div id="createscreen" class="gamelayer">
+                <div id="formcreate">
+                    Room name: <input id="RoomName" type="text" name="RoomName" value=""><br>
+                    <button id="inputroom" value="Create" onclick="createRoomMsg()">Create</button>
+                </div>
+            </div>
             <div id="gamescreen" class="gamelayer">
                 <!--
                 <div id="okbutton"><img src="images/button/ok.png" alt="Ok"></div>
                 <div id="passbutton"><img src="images/button/pass.png" alt="Pass"></div>
                 -->
-                <p class="left">left</p>
-                <p class="top">top</p>
-                <p class="right">right</p>
-                <p class="player">player</p>
+                <p class="left" id="1"></p>
+                <p class="top" id="2"></p>
+                <p class="right" id="3"></p>
+                <p class="player" id="0"></p>
             </div>            
             <div id="roomscreen" class="gamelayer">
                 <div id="readyleft"><img src="images/checks.png" alt="Check"></div>
