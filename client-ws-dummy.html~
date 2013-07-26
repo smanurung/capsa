@@ -49,6 +49,7 @@ function initWebSocket(){
 		 
 		websocket.onmessage = function(message){
 			displayMessage("Received Message: <i>"+message.data+"</i>");
+//			displayMessage("Type Message: <i>"+ typeof message.data+"</i>");
 		};
 	} else {
 	displayMessage("Your Browser does not support WebSockets");

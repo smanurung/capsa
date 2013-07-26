@@ -4,12 +4,15 @@ connection
 	join room = accept request
 
 gameplay
-	your turn										04
-	-ready (creator)									00-<roomid>
-	-card content & card sum -> winning celebration	01-<roomid>-5/1;6/2;7/3;8/1;9/4
-	-skip											02-<roomid>
+	get available									03 ~ roomlist
+	your turn										... ~ 04
+	ready (creator)									00-<roomid> ~ [2000, 00]
+	card content & card sum -> winning celebration	01-<roomid>-5/1;6/2;7/3;8/1;9/4 ~ [2000, 01]
+	skip											02-<roomid> ~ [2000, 02]
+
 	player id										username / xxxxx(port number)
-	win												99-username
+	win												... ~ 99-username
+	kartu											12 - [[1,2],[3,4],[5,6]]
 	
 	-create room		08-roomID
 	-join room		09-roomID		
@@ -18,6 +21,8 @@ warning message
 	invalid turn			05
 	invalid cardconfig		06
 	config kartu tak sesuai / lebih kecil	07
+	room penuh				10
+	room blm penuh			11
 
 success message				2000
 
@@ -46,9 +51,7 @@ to-do
 	dynamic room creation		
 	card comparison function	v
 	username from API			
-	
-last doing
-	single card comparison scheme
+	card distribution sorting
 	
 issue
 	passing array to function parameter		v
