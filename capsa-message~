@@ -9,12 +9,17 @@ gameplay
 	ready (creator)									00-<roomid> ~ [2000, 00]
 	card content & card sum -> winning celebration	01-<roomid>-5/1;6/2;7/3;8/1;9/4 ~ [2000, 01]
 	skip											02-<roomid> ~ [2000, 02]
+
 	player id										username / xxxxx(port number)
 	win												... ~ 99-username
 	kartu											12 - [[1,2],[3,4],[5,6]]
+	skip 3 orang | hapus UI kartu					13
+	room sudah ada									14
+	player already exist							15
+	cannot skip anymore								16
 	
-	create room		08-roomID
-	join room		09-roomID		
+	-create room		08-roomID
+	-join room		09-roomID		
 	
 warning message
 	invalid turn			05
@@ -55,6 +60,19 @@ to-do
 issue
 	passing array to function parameter		v
 	[security]: so far not checking whether current user really own the card
+	kartu pertama bukan tiga wajik		v
+	penanganan skip dua kali			v
+	kalo udah skip, ngga ikut main lagi	v
+	kondisi pass terus					v
+	
+	bomb configuration					v
+	pair as lebih kecil dari pair dua	v
+	flush wajik dan payung				v
+	
+	redundant player in a room		v
+	redundant room id				v
+	kartu straight ada yang ngaco	v
+	giliran pertama ngga boleh pas	v
 	
 catatan perbaikan desain
 	websocket atribut player, bukan port saja

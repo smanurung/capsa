@@ -8,7 +8,6 @@
 var websocket;
 var serverUrl = "ws://localhost:8080/";
 
-//const REG_MSG = '03-smanurung';
 const READY_MSG = '00';
 //const JALAN_MSG = '01-5/1;5/3';
 //const JALAN_MSG = '01-11/1;12/3;10/2;1/2;13/1';
