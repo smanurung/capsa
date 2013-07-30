@@ -13,6 +13,9 @@ gameplay
 	player id										username / xxxxx(port number)
 	win												... ~ 99-username
 	kartu											12 - [[1,2],[3,4],[5,6]]
+	skip 3 orang | hapus UI kartu					13
+	room sudah ada									14
+	player already exist							15
 	
 	-create room		08-roomID
 	-join room		09-roomID		
@@ -56,6 +59,14 @@ to-do
 issue
 	passing array to function parameter		v
 	[security]: so far not checking whether current user really own the card
+	kartu pertama bukan tiga wajik
+	penanganan skip dua kali
+	kasus semua skip
+	kalo udah skip, ngga ikut main lagi
+	pair as lebih kecil dari pair dua
+	redundant player in a room		
+	redundant room id				v
+	kartu straight ada yang ngaco	v
 	
 catatan perbaikan desain
 	websocket atribut player, bukan port saja

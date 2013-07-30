@@ -106,7 +106,10 @@ function getCardConfig(c){
 		if(c.length === 1) return 1;
 		else if (isDouble(c)) return 2;
 		else if (isStraight(c) && isFlush(c)) return 7;
-		else if (isStraight(c)) return 3;
+		else if (isStraight(c)) {
+			console.log('kartu termasuk STRAIGHT');
+			return 3;
+		}
 		else if (isFlush(c)) return 4;
 		else if (isFullHouse(c)) return 5;
 		else if (isBomb(c)) return 6;
@@ -150,11 +153,11 @@ Player.prototype.contains = function(c){
 	}
 }
 
-Player.prototype.removeCard = function(c){
+Player.prototype.removeCard = function(card){
 	var foo = this.getCardList();
 	for(var c in foo){
-		if (isSameCard(foo[c],c)) {
-			this.setCardList(this.getCardList().splice(parseInt(c),1));
+		if (isSameCard(foo[c],card)) {
+			this.cardList.splice(parseInt(c),1);
 			break;
 		}
 	}
@@ -239,7 +242,7 @@ function compareCard(c,d){
 					if(d[0][0]!==d[1][0]) var maxD = d[1];
 					return (maxC[0]>maxD[0]); //nilai kartu tidak mungkin sama
 				}
-				return compareOneCard(getMax(x),getMax(d));
+				return compareOneCard(getMax(c),getMax(d));
 			}
 			else return false;
 		}
@@ -249,6 +252,13 @@ function compareCard(c,d){
 //true jika c = d
 function isSameCard(c,d){
 	return ((c[0]===d[0])&&(c[1]===d[1]));
+}
+
+function isRoomExist(roomL,str){
+	for(r in roomL){
+		if(roomL[r].getID() === str) return true;
+	}
+	return false;
 }
 
 //PseudoClass Room
@@ -357,8 +367,14 @@ Room.prototype.getNextPlayer = function(p){
 		idx += 1;
 //		mencari kembali jika next player termasuk dlm skipList
 		var pList=this.getPlayerList();
-		if(pList[idx].port in this.getSkipList()) return this.getNextPlayer(this.getPlayerList()[idx]);
-		else return this.getPlayerList()[idx];
+		if(this.getSkipList().indexOf(pList[idx].getUsername()) !== -1) {
+			console.log('kalo udah ada di skiplist wajib masuk sini');
+//			var tempList = this.getPlayerList();
+			return this.getNextPlayer(pList[idx]);
+		} else {
+//			var tempList = this.getPlayerList();
+			return pList[idx];
+		}
 	} else return {};
 }
 
@@ -368,6 +384,14 @@ Room.prototype.getPlayerIndex = function(p){
 		if (pList[q].getUsername() === p.getUsername()) return parseInt(q);
 	}
 	return -1;
+}
+
+Room.prototype.isPlayerExist = function(n){
+	var pList = this.getPlayerList();
+	for(p in pList){
+		if(pList[p].getUsername() === n) return true;
+	}
+	else return false;
 }
 
 
@@ -432,8 +456,7 @@ wsServer.on('request',function(request){
 						var car = new Array();
 						car.push('12');
 						car.push(pList[p].getCardList().sort());
-						var mesg_json = JSON.stringify(car);
-						pList[p].getWebSocket().send(mesg_json);
+						pList[p].getWebSocket().send(JSON.stringify(car));
 						
 //						beritahu giliran pertama
 						var gil = new Array();
@@ -479,30 +502,35 @@ wsServer.on('request',function(request){
 //							hapus kartu player terakhir
 							var foo = room.getCurrentCard();
 							for(var x in foo){
-//								removeCard(turn,foo[x]);
 								room.getPlayer(room.getTurn()).removeCard(foo[x]);
+								console.log('kartu yang dihapus');console.log(foo[x]);
+								console.log('Jumlah kartu current player setelah dikurangi jadi: '+room.getPlayer(room.getTurn()).getCardList().length);
 							}
 							
 //							cek kondisi menang
 							if(room.getPlayer(room.getTurn()).getCardList().length===0){
+								console.log('Masuk kondisi menang');
 //								kondisi akhir
 								var pList = room.getPlayerList();
-								for(p in pList){
-									pList[p].getWebSocket().send('99-'+room.getTurn());
-								}
+								
+								var res = new Array();
+								res.push('99');
+								res.push(room.getTurn());
+								
+								for(p in pList) pList[p].getWebSocket().send(JSON.stringify(res));
 								
 								console.log('---Permainan Berakhir---');
 								console.log('Pemenang	:'+room.getTurn());
 							} else {
 //								pesan giliran berikutnya
-								room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
-//								room.getPlayer(room.getTurn()).getWebSocket().send('04');								
+								room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());							
 								console.log('giliran berikutnya: '+room.getTurn());
 							}
 							
 							var res = new Array();
 							res.push('2000');
 							res.push('01');
+							res.push(room.getPlayerIndex(room.getPlayer(room.getTurn())));
 								
 							this.send(JSON.stringify(res));
 						} else {
@@ -536,6 +564,7 @@ wsServer.on('request',function(request){
 					var pList = room.getPlayerList();
 					for(var p in pList){
 						if((room.getSkipList().indexOf(room.getPlayerList()[p].getUsername()))===-1) {
+							console.log('menambahkan skiplist baru');
 //							kosongkan current card
 							room.setCurrentCard(new Array());
 							
@@ -544,26 +573,31 @@ wsServer.on('request',function(request){
 							console.log('skip list berhasil dihapus');
 
 //							ganti giliran player
-							room.setTurn(pList[p].getUsername());
-														
-							pList[p].getWebSocket().send('04');
+							room.setTurn(pList[p].getUsername());							
 							
-							var res = new Array();
-							res.push('2000');
-							res.push('02');
-							
-							this.send(JSON.stringify(res));
 							console.log('giliran berikutnya: '+pList[p].getUsername());
-							
 							break;
 						}
 					}
+					
+//					console.log('broadcast message 13');
+//					broadcast message 13
+					var res = new Array();
+					res.push('13');
+					for(p in pList) pList[p].getWebSocket().send(JSON.stringify(res));
 				} else{
 //					pesan giliran berikutnya
 					room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
-					room.getPlayer(room.getTurn()).getWebSocket().send('04');
+//					room.getPlayer(room.getTurn()).getWebSocket().send('04');
 					console.log('giliran berikutnya: '+room.getTurn());
 				}
+				
+				var res = new Array();
+				res.push('2000');
+				res.push('02');
+				res.push(room.getPlayerIndex(room.getPlayer(room.getTurn())));
+				this.send(JSON.stringify(res));
+							
 			} else if(mArr[0] === '03'){
 //				kirim list room
 
@@ -580,53 +614,69 @@ wsServer.on('request',function(request){
 				this.send(JSON.stringify(res));
 			} else if (mArr[0]==='08'){
 //				create room
-				var room = new Room(mArr[1]);
-				roomList.push(room);
+				if(!isRoomExist(roomList,mArr[1])){
+					var room = new Room(mArr[1]);
+					roomList.push(room);
 				
-//				automatic join room
-				var dummy=String(this.socket._peername.port);
-				var player=new Player(dummy,this);
-				room.addPlayer(player);
-				
-				var res = new Array();
-				res.push('2000');
-				res.push('08');
-				
-//				beritahu room
-				res.push(room.getID());
-
-//				beritahu nama pemain yang sudah ada
-				var pList = room.getPlayerList();
-				for(p in pList){
-					res.push(pList[p].getUsername());
-					mArr.push(pList[p].getUsername());
-				}
-				
-				this.send(JSON.stringify(res));
-				console.log('User '+player.username+' berhasil membentuk room \''+mArr[1]+'\'');
-			}else if(mArr[0]==='09'){
-				if (!room.isFull()){			
-					var res = new Array();
-					res.push('2000');
-					res.push('09');
-				
-//					join room
+//					automatic join room
 					var dummy=String(this.socket._peername.port);
 					var player=new Player(dummy,this);
 					room.addPlayer(player);
-
+				
+					var res = new Array();
+					res.push('2000');
+					res.push('08');
+				
 //					beritahu room
 					res.push(room.getID());
-					
+
 //					beritahu nama pemain yang sudah ada
 					var pList = room.getPlayerList();
 					for(p in pList){
 						res.push(pList[p].getUsername());
 						mArr.push(pList[p].getUsername());
 					}
-					
+				
 					this.send(JSON.stringify(res));
-					console.log('User '+player.username+' berhasil masuk ke room \''+room.id+'\'');
+					console.log('User '+player.username+' berhasil membentuk room \''+mArr[1]+'\'');
+				} else{
+					var res = new Array();
+					res.push('14');
+					this.send(JSON.stringify(res));
+					
+					console.log('warning. ID room '+mArr[1]+' sudah ada');
+				}
+			}else if(mArr[0]==='09'){
+				if (!room.isFull()){	
+					var res = new Array();
+				
+//					join room
+					var dummy=String(this.socket._peername.port);
+					if (!room.isPlayerExist(dummy)){
+						res.push('2000');
+						res.push('09');
+					
+						var player=new Player(dummy,this);
+						room.addPlayer(player);
+
+	//					beritahu room
+						res.push(room.getID());
+					
+	//					beritahu nama pemain yang sudah ada
+						var pList = room.getPlayerList();
+						for(p in pList){
+							res.push(pList[p].getUsername());
+							mArr.push(pList[p].getUsername());
+						}
+					
+						this.send(JSON.stringify(res));
+						console.log('User '+player.username+' berhasil masuk ke room \''+room.id+'\'');
+					} else {
+						res.push('15');
+						this.send(JSON.stringify(res));
+						
+						console.log('warning. user dengan ID '+dummy+' sudah ada');
+					}
 				}else{
 					var res = new Array();
 					res.push('10');
@@ -646,6 +696,10 @@ wsServer.on('request',function(request){
 					for(var m in mArr[2]){
 						mArr[2][m] = mArr[2][m].split('/');
 					}
+				}
+				
+				if ((mArr[0]==='01') || (mArr[0]==='02')){
+					mArr.push(room.getPlayerIndex(room.getPlayer(room.getTurn())));
 				}
 				
 				mArr.splice(1,0,'');
