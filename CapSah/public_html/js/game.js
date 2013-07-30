@@ -39,6 +39,7 @@ var game = {
 
     },
     drawcanvas: function() {
+        gameroom.refreshtable();
         gameroom.drawplayercard();
         gameroom.drawtopcard();
         gameroom.drawleftcard();
@@ -46,7 +47,7 @@ var game = {
         gameroom.drawok();
         gameroom.drawpass();
     },
-    move: function() {
+    move: function(nextturn) {
         if (game.turn == game.myturn) {
             var selected = new Array();
             var i = 0;
@@ -67,13 +68,9 @@ var game = {
                 gameroom.drawmovecard(selected);
             }
         }
-        if (game.turn < 3) {
-            game.turn++;
-        } else {
-            game.turn = 0;
-        }
+        game.turn = nextturn;
     },
-    movenonplayer: function(arr) {
+    movenonplayer: function(arr, nextturn) {
         gameroom.refreshtable();
         if (game.turn != game.myturn) {
             switch (game.myturn) {
@@ -151,11 +148,8 @@ var game = {
             }
 
             gameroom.drawmovecard(arr);
-            if (game.turn < 3) {
-                game.turn++;
-            } else {
-                game.turn = 0;
-            }
+
+            game.turn = nextturn;
         }
     },
     resetgame: function() {
@@ -164,6 +158,7 @@ var game = {
         game.right = 13;
         game.turn = 0;
         //game.myturn = 0;
+        $('#winner').html('');
         game.arr = new Array();
         game.state = [false, false, false, false, false, false, false, false,false, false,false, false, false];
     },
@@ -188,6 +183,15 @@ var game = {
         $('.gamelayer').hide();
         $('#gamescreen').show();
         $('#roomscreen').show();
+    },
+    showwinner: function(winner){
+        $('#winner').html(winner + ' win!');
+        gameroom.clearok();
+        gameroom.clearpass();
+        $('#winnerscreen').show();
+        $('#okbutton').click(function(){
+            gameroom.returnevent();
+        });
     }
 }
 
@@ -221,11 +225,10 @@ var gameroom = {
 
         $('#startbutton').click(function() {
             startgame();
-            game.showgamescreen();
         });
 
         $('#exitbutton').click(function() {
-            game.showlobbyscreen();
+            //game.showlobbyscreen();
         });
     },
     drawtopcard: function() {
@@ -351,6 +354,12 @@ var gameroom = {
             }
         }
     },
+    clearok:function(){
+        game.context.clearRect(475, 390, 80, 40);
+    },        
+    clearpass:function(){
+        game.context.clearRect(85, 390, 80, 40);
+    },             
     drawok: function() {
         game.ok = new Image();
         game.ok.src = 'images/button/ok.png';
@@ -375,9 +384,7 @@ var gameroom = {
         }
     },
     passevent: function() {
-        game.resetgame();
-        gameroom.refreshtable();
-        game.showroomscreen();
+        pass();
     },
     refreshplayer: function() {
         // search
@@ -413,6 +420,9 @@ var gameroom = {
     },
     refreshtable: function() {
         game.context.clearRect(190, 130, 260, 210);
+    },
+    returnevent: function(){
+        game.showroomscreen();
     }
 }
 
@@ -443,10 +453,10 @@ var mouse = {
         } else {
             $(this).css("cursor", "default");
         }
-        game.context.clearRect(0, 0, 100, 50);
-        game.context.font = '18pt Calibri';
-        game.context.fillStyle = 'black';
-        game.context.fillText(mouse.x + ', ' + mouse.y, 10, 25);
+//        game.context.clearRect(0, 0, 100, 50);
+//        game.context.font = '18pt Calibri';
+//        game.context.fillStyle = 'black';
+//        game.context.fillText(mouse.x + ', ' + mouse.y, 10, 25);
     },
     mousedownhandler: function(ev) {
         mouse.down = true;

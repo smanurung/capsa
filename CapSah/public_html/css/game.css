@@ -100,6 +100,9 @@ body {
     cursor: pointer;
     padding: 25px;
     text-align: center;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;    
     background:url(../images/button/RoomButton.png) no-repeat;
 }
 
@@ -210,4 +213,20 @@ p.top {
     position: absolute;
     top: 10px;
     left: 190px;
+}
+
+#winnerscreen #okbutton {
+    position: absolute;
+    top: 390px;
+    left: 280px;
+    cursor: pointer;
+}
+
+#winnerscreen #winner {
+    text-align: center;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    text-shadow: -3px 0 black, 0 3px black, 3px 0 black, 0 -3px black;
+    font-size: 250%;
+    color:#00ff00;
 }
