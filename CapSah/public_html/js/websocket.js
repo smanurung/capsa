@@ -37,13 +37,16 @@ function initWebSocket() {
             var msg = JSON.parse(message.data);
             if (msg[0] == '2000') { // message success plus action
                 switch (msg[1]) {
-                    case '00':
+                    case '00':  //
+                        game.showgamescreen();
                         break;
                     case '01':
-                        game.move();
+                        game.move(msg[2]);
                         gameroom.drawnextturn();
                         break;
                     case '02':
+                        game.turn = msg[2];
+                        gameroom.drawnextturn();
                         break;
                     case '03':
                         rooms.roomlist = msg.slice(2, msg.length);
@@ -72,8 +75,11 @@ function initWebSocket() {
             } else {
                 switch (msg[0]) {
                     case '01':
-                        alert('01 nih' + msg[3]);
-                        game.movenonplayer(msg[3]);
+                        game.movenonplayer(msg[3],msg[4]);
+                        gameroom.drawnextturn();
+                        break;
+                    case '02':
+                        game.turn = msg[3];
                         gameroom.drawnextturn();
                         break;
                     case '04':
@@ -95,9 +101,18 @@ function initWebSocket() {
                         break;
                     case '00':
                         break;
+                    case '11':
+                        alert("room is not full yet");
+                        break;
                     case '12':
                         game.resetgame();
                         game.arr = msg[1].slice(0);
+                        break;
+                    case '13':  // new game turn
+                        gameroom.refreshtable();
+                        break;
+                    case '99':  // menampilkan pemenangnya
+                        game.showwinner(msg[1]);
                         break;
                 }
             }
@@ -164,7 +179,6 @@ function playermove() {
     var selected = new Array();
     var i = 0;
     var prevlength = game.state.length;
-    alert('a');
     arr = game.arr.slice(0);
     state = game.state.slice(0);
     while (i < state.length)
@@ -177,9 +191,7 @@ function playermove() {
         }
         i++;
     }
-    alert('b');
     if (prevlength != state.length) {
-        alert('01 coi');
         if (websocket.readyState = websocket.OPEN) {
             var message = '01-' + game.currentroom + '-';
             for (var i = 0; i < selected.length; i++) {
@@ -188,11 +200,20 @@ function playermove() {
                     message += ';';
                 }
             }
-            alert(message);
             displayMessage("Sending Message: <i>" + message + "</i>");
             websocket.send(message);
         } else {
             displayMessage("Cannot send message. The WebSocket connection isn't open");
         }
+    }
+}
+
+function pass() {
+    if (websocket.readyState = websocket.OPEN) {
+        var message = '02-' + game.currentroom;
+        displayMessage("Sending Message: <i>" + message + "</i>");
+        websocket.send(message);
+    } else {
+        displayMessage("Cannot send message. The WebSocket connection isn't open");
     }
 }
