@@ -7,7 +7,7 @@ var http=require('http');
 var SUCCESS = '2000';
 var WARNING_ROOM_FULL='Warning. Jumlah pemain sudah penuh\n';
 var WARNING_ROOM_NOT_FULL='Warning. Jumlah pemain belum cukup\n';
-var ROOM_CAPACITY=2;
+var ROOM_CAPACITY=4;
 
 var i=0;
 var server=http.createServer(function(request,response){
@@ -48,7 +48,6 @@ function isDouble(c) {
 function isStraight(c){
 	if (c.length === 5) {
 		var sorted = c.sort(Comparator);
-		console.log(sorted);
 		
 //		kasus as tersebar
 		if ((c[0][0] === '1') && (c[4][0] === '13')) c[0][0] = String(parseInt(c[0][0])+8);
@@ -429,12 +428,25 @@ Room.prototype.isPlayerExist = function(n){
 //global variable
 
 var roomList=new Array();
+var clientList=new Array();
 
 function getRoom(roomL,roomid){
 	for (var r in roomL){
 		if(roomL[r].id===roomid) return roomL[r];
 	}
 	return {};
+}
+
+function getClient(list,ws){
+	for(var c in list){
+		if(list[c].getWebSocket()===ws) return list[c];
+	}
+}
+
+function removeClient(list,uname){
+	for(var c in list){
+		if(list[c].getUsername()===uname) list.splice(parseInt(c),1);
+	}
 }
 
 wsServer.on('request',function(request){
@@ -613,21 +625,21 @@ wsServer.on('request',function(request){
 				} else {
 					room.addSkipList(room.getTurn());
 				
-	//				cek jumlah player yang skip
+//					cek jumlah player yang skip
 					if(room.getSkipList().length===(room.getPlayerList().length-1)) {
-	//					cari pemain yg blm skip
+//						cari pemain yg blm skip
 						var pList = room.getPlayerList();
 						for(var p in pList){
 							if((room.getSkipList().indexOf(room.getPlayerList()[p].getUsername()))===-1) {
 								console.log('menambahkan skiplist baru');
-	//							kosongkan current card
+//								kosongkan current card
 								room.setCurrentCard(new Array());
 							
 //								kosongkan skiplist
 //								room.emptySkipList();
 //								console.log('skip list berhasil dihapus');
 
-	//							ganti giliran player
+//								ganti giliran player
 								room.setTurn(pList[p].getUsername());							
 							
 								console.log('giliran berikutnya: '+pList[p].getUsername());
@@ -635,12 +647,12 @@ wsServer.on('request',function(request){
 							}
 						}
 						
-	//					broadcast message 13
+//						broadcast message 13
 						var res = new Array();
 						res.push('13');
 						for(p in pList) pList[p].getWebSocket().send(JSON.stringify(res));
 					} else{
-	//					pesan giliran berikutnya
+//						pesan giliran berikutnya
 						room.setTurn(room.getNextPlayer(room.getPlayer(room.getTurn())).getUsername());
 						console.log('giliran berikutnya: '+room.getTurn());
 					}
@@ -673,9 +685,12 @@ wsServer.on('request',function(request){
 					roomList.push(room);
 				
 //					automatic join room
-					var dummy=String(this.socket._peername.port);
-					var player=new Player(dummy,this);
-					room.addPlayer(player);
+					var dummy=getClient(clientList,this);
+//					var player=new Player(dummy,this);
+					room.addPlayer(dummy);
+					
+//					hapus player dari client list
+					removeClient(clientList,dummy.getUsername());
 				
 					var res = new Array();
 					res.push('2000');
@@ -692,7 +707,7 @@ wsServer.on('request',function(request){
 					}
 				
 					this.send(JSON.stringify(res));
-					console.log('User '+player.username+' berhasil membentuk room \''+mArr[1]+'\'');
+					console.log('User '+dummy.getUsername()+' berhasil membentuk room \''+mArr[1]+'\'');
 				} else{
 					var res = new Array();
 					res.push('14');
@@ -705,18 +720,23 @@ wsServer.on('request',function(request){
 					var res = new Array();
 				
 //					join room
-					var dummy=String(this.socket._peername.port);
-					if (!room.isPlayerExist(dummy)){
+					var dummy=getClient(clientList,this);
+					console.log('');
+					if (!room.isPlayerExist(dummy.getUsername())){
 						res.push('2000');
+						
 						res.push('09');
 					
-						var player=new Player(dummy,this);
-						room.addPlayer(player);
+//						var player=new Player(dummy,this);
+						room.addPlayer(dummy);
+						
+//						hapus element dalam client list
+						removeClient(clientList, dummy.getUsername());
 
-	//					beritahu room
+//						beritahu room
 						res.push(room.getID());
 					
-	//					beritahu nama pemain yang sudah ada
+//						beritahu nama pemain yang sudah ada
 						var pList = room.getPlayerList();
 						for(p in pList){
 							res.push(pList[p].getUsername());
@@ -724,7 +744,7 @@ wsServer.on('request',function(request){
 						}
 					
 						this.send(JSON.stringify(res));
-						console.log('User '+player.username+' berhasil masuk ke room \''+room.id+'\'');
+						console.log('User '+dummy.getUsername()+' berhasil masuk ke room \''+room.id+'\'');
 					} else {
 						res.push('15');
 						this.send(JSON.stringify(res));
@@ -739,6 +759,26 @@ wsServer.on('request',function(request){
 					
 					flag = false;
 				}
+			} else if(mArr[0]==='17'){
+				console.log('nama pemain: '+mArr[1]);
+				/*var pList = room.getPlayerList();
+				for(var p in pList){
+					if(pList[p].getWebSocket()===this) pList[p].setUsername(mArr[1]);
+				}*/
+				
+//				membentuk objek player
+				var p = new Player(mArr[1],this);
+				
+//				memasukan player baru ke client list
+				clientList.push(p);
+				
+//				membentuk request message
+				var m = new Array();
+				m.push('2000');
+				m.push('17');
+				this.send(JSON.stringify(m));
+				
+				console.log('pemain dengan nama '+mArr[1]+' telah berhasil diperbaharui');
 			}
 			
 //			broadcast
@@ -764,7 +804,7 @@ wsServer.on('request',function(request){
 				}
 			}
 			
-		} else{
+		} else {
 			console.log('warning. pesan bukan dalam format utf-8');
 			this.send('warning. pesan bukan dalam format utf-8');
 		}
