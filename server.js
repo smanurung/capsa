@@ -7,7 +7,7 @@ var http=require('http');
 var SUCCESS = '2000';
 var WARNING_ROOM_FULL='Warning. Jumlah pemain sudah penuh\n';
 var WARNING_ROOM_NOT_FULL='Warning. Jumlah pemain belum cukup\n';
-var ROOM_CAPACITY=4;
+var ROOM_CAPACITY=2;
 
 var i=0;
 var server=http.createServer(function(request,response){
@@ -47,7 +47,7 @@ function isDouble(c) {
 
 function isStraight(c){
 	if (c.length === 5) {
-		var sorted = c.sort();
+		var sorted = c.sort(Comparator);
 		
 //		kasus as tersebar
 		if ((c[0][0] === '1') && (c[4][0] === '13')) c[0][0] = String(parseInt(c[0][0])+8);
