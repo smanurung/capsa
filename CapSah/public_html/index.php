@@ -39,7 +39,7 @@ and open the template in the editor.
         $kaskus_oauth->setToken($token['oauth_token'], $token['oauth_token_secret']);
         $resp = $kaskus_oauth->requestPage ( __KASKUS_API_URL__ . 'user', array ('output' => 'json' ) );
         $resp = json_decode($resp);
-        if($resp->error) {
+        if(isset($resp->error)) {
             unlink('data/access_token'.$userid.'.txt');
             header('Location: index.php');
         } else {
@@ -63,7 +63,7 @@ and open the template in the editor.
 			//registerusername(userName);
 		</script>
     </head>
-    <body onload="initWebSocket(); registerusername(userName);">
+    <body onload="initWebSocket();">
 		<script>
 		
 		</script>
@@ -79,6 +79,7 @@ and open the template in the editor.
                 <div id="formcreate">
                     Room name: <input id="RoomName" type="text" name="RoomName" value=""><br>
                     <button id="inputroom" value="Create" onclick="createRoomMsg()">Create</button>
+					<button id="exitcreate" value="Back" onclick="backtolobby()">Back</button>
                 </div>
             </div>
             <div id="gamescreen" class="gamelayer">

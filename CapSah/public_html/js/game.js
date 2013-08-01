@@ -22,6 +22,7 @@ var game = {
     init: function() {
 		
         mouse.init();
+		        gameroom.init();
         // Hide all game layers and display the start screen
         $('.gamelayer').hide();
         $('#turnscreen .turn').hide();
@@ -36,7 +37,6 @@ var game = {
 		//registerusername();
 		
         $('#startup').click(function() {
-			
             roomlist();
         });
 		
@@ -182,7 +182,6 @@ var game = {
         $('#lobbyscreen').show();
     },
     showroomscreen: function() {
-        gameroom.init();
         $('.gamelayer').hide();
         $('#gamescreen').show();
         $('#roomscreen').show();
@@ -231,7 +230,8 @@ var gameroom = {
         });
 
         $('#exitbutton').click(function() {
-            //game.showlobbyscreen();
+			roomlist();
+			exitroom(userName);
         });
     },
     drawtopcard: function() {
@@ -390,6 +390,12 @@ var gameroom = {
         pass();
     },
     refreshplayer: function() {
+	
+        for (var i = 0; i < 4; i++) {
+            var locationname = '#' + i;
+            $(locationname).html('');
+        }
+		
         // search
         for (var i = 0; i < game.players.length; i++) {
             if (game.players[i] == game.myname) {
