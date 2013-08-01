@@ -18,6 +18,7 @@ gameplay
 	player already exist							15
 	cannot skip anymore								16
 	username										17 | 2000-17
+	exit											18-<username>
 	
 	-create room		08-roomID
 	-join room		09-roomID		
