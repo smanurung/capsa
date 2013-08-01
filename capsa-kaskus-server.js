@@ -60,7 +60,7 @@ function isStraight(c){
 }
 
 function isFlush(c){
-	if (typeof c !== 'undefined' && c.length>0) {
+	if (typeof c !== 'undefined' && c.length===5) {
 		var jenis = c[0][1];
 		for (var j in c) if (c[j][1] !== jenis) return false;
 		return true;
@@ -442,6 +442,12 @@ function getRoom(roomL,roomid){
 	return {};
 }
 
+function removeRoom(roomL,roomid){
+	for(var r in roomL){
+		if(roomL[r].getID()===roomid) roomL.splice(parseInt(r),1);
+	}
+}
+
 function getClient(list,ws){
 	for(var c in list){
 		if(list[c].getWebSocket()===ws) return list[c];
@@ -481,9 +487,12 @@ wsServer.on('request',function(request){
 			
 			if(mArr[0] === '00') {				
 				if (room.isFull()){
+//					reset current card
+					room.setCurrentCard(new Array());
+					
 //					prepare for gameplay
 					room.setReady(true);
-				
+					
 //					kocok kartu
 					var randomList=[[],[],[],[]];
 					randomList=room.shuffle();
@@ -628,7 +637,7 @@ wsServer.on('request',function(request){
 					this.send(JSON.stringify(res));
 					
 					console.log('warning. Anda sudah tidak bisa skip');
-				} else {
+				} else if (room.getPlayer(room.getTurn()).getWebSocket() === this) {
 					room.addSkipList(room.getTurn());
 				
 //					cek jumlah player yang skip
@@ -787,6 +796,9 @@ wsServer.on('request',function(request){
 			} else if (mArr[0]==='18'){
 				
 //				cari player yang bersangkutan
+				var p = room.getPlayer(mArr[2]);
+				
+				console.log('tipe player: '+typeof p);
 				
 //				masukan player kembali ke client list
 				clientList.push(p);
@@ -794,7 +806,20 @@ wsServer.on('request',function(request){
 //				hapus player dari room player list
 				room.removePlayer(p);
 				
-				var res = new Arrray();
+//				uji apakah room kosong
+				if (room.getPlayerList().length===0){
+					removeRoom(roomList,mArr[1]);
+//					broadcast room deletion
+					var delmsg = new Array();
+					delmsg.push('19');
+					delmsg.push(mArr[1]);
+					
+					for(var r in clientList){
+						clientList[r].getWebSocket().send(JSON.stringify(delmsg));
+					}
+				}
+				
+				var res = new Array();
 				res.push('2000');
 				res.push('18');
 				this.send(JSON.stringify(res));
