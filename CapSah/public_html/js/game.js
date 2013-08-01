@@ -20,7 +20,7 @@ var game = {
     istarted: false,
     players: new Array(),
     init: function() {
-
+		
         mouse.init();
         // Hide all game layers and display the start screen
         $('.gamelayer').hide();
@@ -32,11 +32,14 @@ var game = {
         game.context = game.canvas.getContext('2d');
 
         game.drawcanvas();
-
+		
+		//registerusername();
+		
         $('#startup').click(function() {
+			
             roomlist();
         });
-
+		
     },
     drawcanvas: function() {
         gameroom.refreshtable();

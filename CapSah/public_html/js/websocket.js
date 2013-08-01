@@ -70,6 +70,9 @@ function initWebSocket() {
                     case '00':
                         istarted = true;
                         break;
+                    case '17':
+						alert('user is registered');
+                        break;						
                 }
 
             } else {
@@ -213,6 +216,19 @@ function pass() {
         var message = '02-' + game.currentroom;
         displayMessage("Sending Message: <i>" + message + "</i>");
         websocket.send(message);
+    } else {
+        displayMessage("Cannot send message. The WebSocket connection isn't open");
+    }
+}
+
+function registerusername(username){
+    if (websocket.readyState = websocket.OPEN) {
+        var message = '17-' + username;
+        displayMessage("Sending Message: <i>" + message + "</i>");
+		alert(message);
+        websocket.send(message);
+
+
     } else {
         displayMessage("Cannot send message. The WebSocket connection isn't open");
     }
