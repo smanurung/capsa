@@ -1,0 +1,1 @@
+a:6:{s:6:"access";s:7:"GRANTED";s:11:"oauth_token";s:30:"79a7f61e09d3f18b6beeeb3ee50b3e";s:18:"oauth_token_secret";s:30:"ff9c771cb834b62781299a70b3ec1a";s:6:"userid";s:2:"42";s:8:"username";s:10:"Dinosaurus";s:7:"expired";s:10:"1375859328";}
