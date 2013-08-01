@@ -50,10 +50,10 @@ function isStraight(c){
 		var sorted = c.sort(Comparator);
 		
 //		kasus as tersebar
-		if ((c[0][0] === '1') && (c[4][0] === '13')) c[0][0] = String(parseInt(c[0][0])+8);
+		if ((sorted[0][0] === '1') && (sorted[4][0] === '13')) sorted[0][0] = String(parseInt(sorted[0][0])+8);
 		
 		for (var i=1; i<5; i++) {
-			if (parseInt(c[i][0]) !== parseInt(c[i-1][0]) + 1) return false;
+			if (parseInt(sorted[i][0]) !== parseInt(sorted[i-1][0]) + 1) return false;
 		}
 		return true;
 	} else return false;
@@ -350,6 +350,13 @@ Room.prototype.setReady = function(readyV){
 	this.isReady = readyV;
 }
 
+Room.prototype.removePlayer = function(player){
+//	cari index player terkait
+	var idx=this.getPlayerIndex(player);
+//	hapus dari player list
+	this.playerList.splice(idx,1);
+}
+
 //p -> player username
 Room.prototype.addSkipList = function(p){
 	this.getSkipList().push(p);
@@ -399,10 +406,8 @@ Room.prototype.getNextPlayer = function(p){
 //		mencari kembali jika next player termasuk dlm skipList
 		var pList=this.getPlayerList();
 		if(this.getSkipList().indexOf(pList[idx].getUsername()) !== -1) {
-//			var tempList = this.getPlayerList();
 			return this.getNextPlayer(pList[idx]);
 		} else {
-//			var tempList = this.getPlayerList();
 			return pList[idx];
 		}
 	} else return {};
@@ -612,6 +617,7 @@ wsServer.on('request',function(request){
 					console.log('masih giliran: '+room.getTurn());
 					
 					flag = false;
+					
 				}
 			} else if ((mArr[0] === '02')&&(room.getIsReady())){
 				console.log('isi pesan	: '+room.getTurn()+' skip');
@@ -634,10 +640,6 @@ wsServer.on('request',function(request){
 								console.log('menambahkan skiplist baru');
 //								kosongkan current card
 								room.setCurrentCard(new Array());
-							
-//								kosongkan skiplist
-//								room.emptySkipList();
-//								console.log('skip list berhasil dihapus');
 
 //								ganti giliran player
 								room.setTurn(pList[p].getUsername());							
@@ -686,7 +688,6 @@ wsServer.on('request',function(request){
 				
 //					automatic join room
 					var dummy=getClient(clientList,this);
-//					var player=new Player(dummy,this);
 					room.addPlayer(dummy);
 					
 //					hapus player dari client list
@@ -705,7 +706,16 @@ wsServer.on('request',function(request){
 						res.push(pList[p].getUsername());
 						mArr.push(pList[p].getUsername());
 					}
-				
+					
+//					broadcast room ke semua connected client
+					var roomUpdate = new Array();
+					roomUpdate.push(mArr[0]);
+					roomUpdate.push('');
+					roomUpdate.push(mArr[1]);
+					for(c in clientList){
+						clientList[c].getWebSocket().send(JSON.stringify(roomUpdate));
+					}
+					
 					this.send(JSON.stringify(res));
 					console.log('User '+dummy.getUsername()+' berhasil membentuk room \''+mArr[1]+'\'');
 				} else{
@@ -727,7 +737,6 @@ wsServer.on('request',function(request){
 						
 						res.push('09');
 					
-//						var player=new Player(dummy,this);
 						room.addPlayer(dummy);
 						
 //						hapus element dalam client list
@@ -761,10 +770,6 @@ wsServer.on('request',function(request){
 				}
 			} else if(mArr[0]==='17'){
 				console.log('nama pemain: '+mArr[1]);
-				/*var pList = room.getPlayerList();
-				for(var p in pList){
-					if(pList[p].getWebSocket()===this) pList[p].setUsername(mArr[1]);
-				}*/
 				
 //				membentuk objek player
 				var p = new Player(mArr[1],this);
@@ -779,6 +784,22 @@ wsServer.on('request',function(request){
 				this.send(JSON.stringify(m));
 				
 				console.log('pemain dengan nama '+mArr[1]+' telah berhasil diperbaharui');
+			} else if (mArr[0]==='18'){
+				
+//				cari player yang bersangkutan
+				
+//				masukan player kembali ke client list
+				clientList.push(p);
+				
+//				hapus player dari room player list
+				room.removePlayer(p);
+				
+				var res = new Arrray();
+				res.push('2000');
+				res.push('18');
+				this.send(JSON.stringify(res));
+				
+				console.log('pemain berhasil meninggalkan room');
 			}
 			
 //			broadcast
@@ -797,6 +818,8 @@ wsServer.on('request',function(request){
 				}
 				
 				mArr.splice(1,0,'');
+//				console.log('message broadcast');console.log(mArr);
+//				console.log('player list');console.log(pList);
 				for (var p in pList){
 					if (pList[p].getWebSocket() !== this) {
 						pList[p].getWebSocket().send(JSON.stringify(mArr));
@@ -811,6 +834,7 @@ wsServer.on('request',function(request){
 	});
 	
 	websocket.on('close',function(reasonCode,description){
+		
 		console.log('WebSocket Connection dari '+request.remoteAddress+'/'+this.socket._peername.port+' ditutup');
 	});
 });
