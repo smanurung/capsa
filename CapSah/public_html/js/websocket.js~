@@ -5,8 +5,8 @@
 
 
 var websocket;
-//var serverUrl = "ws://10.175.213.115:8080/";
-var serverUrl = "ws://localhost:8080/";
+var serverUrl = "ws://10.175.213.115:8080/";
+//var serverUrl = "ws://localhost:8080/";
 function displayMessage(message) {
     console.log(message);
 }
@@ -70,9 +70,6 @@ function initWebSocket() {
                     case '00':
                         istarted = true;
                         break;
-                    case '17':
-						alert('user is registered');
-                        break;						
                 }
 
             } else {
@@ -220,17 +217,3 @@ function pass() {
         displayMessage("Cannot send message. The WebSocket connection isn't open");
     }
 }
-
-function registerusername(username){
-    if (websocket.readyState = websocket.OPEN) {
-        var message = '17-' + username;
-        displayMessage("Sending Message: <i>" + message + "</i>");
-		alert(message);
-        websocket.send(message);
-
-
-    } else {
-        displayMessage("Cannot send message. The WebSocket connection isn't open");
-    }
-}
-
